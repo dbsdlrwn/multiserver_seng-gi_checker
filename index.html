@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>생명의 기운 트래커</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2a2d3a;
+    --accent: #c8a96e;
+    --accent-dim: #8a7048;
+    --text: #d4d6e0;
+    --text-dim: #6b6f82;
+    --green: #4caf82;
+    --yellow: #e6b84a;
+    --red: #e05858;
+    --bar-bg: #252836;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Malgun Gothic', '맑은 고딕', Pretendard, sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 12px;
+    margin-bottom: 20px;
+  }
+
+  /* Server selector */
+  .server-selector {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+
+  .server-selector h2 {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+
+  .server-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .server-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+  }
+
+  .server-chip input { display: none; }
+
+  .server-chip.active {
+    border-color: var(--accent);
+    background: #1e1c14;
+    color: var(--accent);
+  }
+
+  /* Cards */
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .server-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--accent);
+  }
+
+  .vita-value {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+
+  .vita-max {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-left: 2px;
+  }
+
+  .bar-wrap {
+    background: var(--bar-bg);
+    border-radius: 4px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .charge-info {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .charge-info span {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  .charge-info.full span { color: var(--accent); }
+
+  .actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  button {
+    border: none;
+    border-radius: 5px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: 600;
+    transition: opacity 0.15s;
+  }
+
+  button:hover { opacity: 0.8; }
+
+  .btn-drain {
+    background: var(--red);
+    color: #fff;
+  }
+
+  .btn-partial {
+    background: var(--yellow);
+    color: #111;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 24px;
+    width: 300px;
+  }
+
+  .modal h3 {
+    font-size: 15px;
+    margin-bottom: 4px;
+    color: var(--accent);
+  }
+
+  .modal p {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+
+  .modal input[type="number"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 18px;
+    font-family: inherit;
+    padding: 8px 12px;
+    margin-bottom: 14px;
+    outline: none;
+    text-align: center;
+  }
+
+  .modal input:focus { border-color: var(--accent); }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .btn-cancel {
+    background: var(--border);
+    color: var(--text);
+  }
+
+  .btn-confirm {
+    background: var(--accent);
+    color: #111;
+  }
+
+  .empty-state {
+    color: var(--text-dim);
+    font-size: 13px;
+    padding: 20px;
+    text-align: center;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+  }
+
+  .last-updated {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 16px;
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+
+<h1>⚡ 생명의 기운 트래커</h1>
+<p class="subtitle">최대 10,500 · 시간당 180 회복 · 데이터는 브라우저 쿠키에 저장됩니다</p>
+
+<div class="server-selector">
+  <h2>서버 선택</h2>
+  <div class="server-checkboxes" id="serverChips"></div>
+</div>
+
+<div class="cards" id="cards"></div>
+<div class="empty-state" id="emptyState" style="display:none">선택된 서버가 없습니다. 위에서 서버를 선택하세요.</div>
+
+<div class="last-updated" id="lastUpdated"></div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">일부 소모</h3>
+    <p id="modalDesc">소모 후 남은 생명의 기운 수치를 입력하세요 (0 ~ 10500)</p>
+    <input type="number" id="modalInput" min="0" max="10500" placeholder="0">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modalCancel">취소</button>
+      <button class="btn-confirm" id="modalConfirm">적용</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SERVERS = ['카마인','니나브','카단','카제로스','아만','실리안','아브렐슈드','루페온'];
+const MAX_VITA = 10500;
+const REGEN_PER_HOUR = 180;
+const COOKIE_KEY = 'vita_tracker_v1';
+
+// --- Cookie helpers ---
+function saveCookie(data) {
+  const val = encodeURIComponent(JSON.stringify(data));
+  const exp = new Date(Date.now() + 365*24*3600*1000).toUTCString();
+  document.cookie = `${COOKIE_KEY}=${val};expires=${exp};path=/`;
+}
+
+function loadCookie() {
+  const match = document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(COOKIE_KEY+'='));
+  if (!match) return null;
+  try { return JSON.parse(decodeURIComponent(match.slice(COOKIE_KEY.length+1))); }
+  catch(e) { return null; }
+}
+
+// --- State ---
+let state = {
+  selected: [],   // array of server names currently shown
+  servers: {}     // { serverName: { vita: number, timestamp: number (ms) } }
+};
+
+function initState() {
+  const saved = loadCookie();
+  if (saved) {
+    state = saved;
+  } else {
+    state = { selected: [], servers: {} };
+  }
+}
+
+function save() {
+  saveCookie(state);
+  renderLastUpdated();
+}
+
+// --- Vita computation ---
+function currentVita(serverName) {
+  const s = state.servers[serverName];
+  if (!s) return MAX_VITA;
+  const elapsed = (Date.now() - s.timestamp) / 3600000; // hours
+  const recovered = Math.floor(elapsed * REGEN_PER_HOUR);
+  return Math.min(MAX_VITA, s.vita + recovered);
+}
+
+function hoursToFull(serverName) {
+  const cv = currentVita(serverName);
+  if (cv >= MAX_VITA) return 0;
+  return (MAX_VITA - cv) / REGEN_PER_HOUR;
+}
+
+function formatDuration(hours) {
+  if (hours <= 0) return '완충';
+  const totalMin = Math.ceil(hours * 60);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  const d = Math.floor(h / 24);
+  const rh = h % 24;
+  if (d > 0) return `${d}일 ${rh}시간 ${m}분`;
+  if (h > 0) return `${h}시간 ${m}분`;
+  return `${m}분`;
+}
+
+function barColor(ratio) {
+  if (ratio >= 0.9) return 'var(--accent)';
+  if (ratio >= 0.5) return 'var(--green)';
+  if (ratio >= 0.25) return 'var(--yellow)';
+  return 'var(--red)';
+}
+
+// --- Render ---
+function renderChips() {
+  const container = document.getElementById('serverChips');
+  container.innerHTML = '';
+  SERVERS.forEach(name => {
+    const chip = document.createElement('label');
+    chip.className = 'server-chip' + (state.selected.includes(name) ? ' active' : '');
+    chip.innerHTML = `<input type="checkbox" ${state.selected.includes(name)?'checked':''}>${name}`;
+    chip.querySelector('input').addEventListener('change', e => {
+      if (e.target.checked) {
+        if (!state.selected.includes(name)) state.selected.push(name);
+      } else {
+        state.selected = state.selected.filter(s => s !== name);
+      }
+      save();
+      renderChips();
+      renderCards();
+    });
+    container.appendChild(chip);
+  });
+}
+
+function renderCards() {
+  const container = document.getElementById('cards');
+  const empty = document.getElementById('emptyState');
+  container.innerHTML = '';
+
+  if (state.selected.length === 0) {
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  state.selected.forEach(name => {
+    const cv = currentVita(name);
+    const ratio = cv / MAX_VITA;
+    const h = hoursToFull(name);
+    const isFull = h <= 0;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-header">
+        <span class="server-name">${name}</span>
+        <span><span class="vita-value">${cv.toLocaleString()}</span><span class="vita-max"> / ${MAX_VITA.toLocaleString()}</span></span>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-fill" style="width:${(ratio*100).toFixed(1)}%;background:${barColor(ratio)}"></div>
+      </div>
+      <div class="card-footer">
+        <div class="charge-info ${isFull?'full':''}">
+          완전충전까지: <span>${formatDuration(h)}</span>
+        </div>
+        <div class="actions">
+          <button class="btn-partial" data-server="${name}">일부 소모</button>
+          <button class="btn-drain" data-server="${name}">전소</button>
+        </div>
+      </div>
+    `;
+
+    card.querySelector('.btn-drain').addEventListener('click', () => drainServer(name));
+    card.querySelector('.btn-partial').addEventListener('click', () => openModal(name));
+
+    container.appendChild(card);
+  });
+}
+
+function drainServer(name) {
+  state.servers[name] = { vita: 0, timestamp: Date.now() };
+  save();
+  renderCards();
+}
+
+// --- Modal ---
+let _modalTarget = null;
+
+function openModal(name) {
+  _modalTarget = name;
+  const cv = currentVita(name);
+  document.getElementById('modalTitle').textContent = `${name} — 일부 소모`;
+  document.getElementById('modalDesc').textContent = `소모 후 남은 생명의 기운을 입력 (현재: ${cv.toLocaleString()})`;
+  const inp = document.getElementById('modalInput');
+  inp.value = cv;
+  inp.max = MAX_VITA;
+  document.getElementById('modalOverlay').classList.add('open');
+  inp.focus();
+  inp.select();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  _modalTarget = null;
+}
+
+document.getElementById('modalCancel').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+});
+document.getElementById('modalInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmModal();
+  if (e.key === 'Escape') closeModal();
+});
+
+document.getElementById('modalConfirm').addEventListener('click', confirmModal);
+
+function confirmModal() {
+  if (!_modalTarget) return;
+  const raw = parseInt(document.getElementById('modalInput').value, 10);
+  if (isNaN(raw) || raw < 0 || raw > MAX_VITA) {
+    document.getElementById('modalInput').style.borderColor = 'var(--red)';
+    setTimeout(() => document.getElementById('modalInput').style.borderColor = '', 800);
+    return;
+  }
+  state.servers[_modalTarget] = { vita: raw, timestamp: Date.now() };
+  save();
+  closeModal();
+  renderCards();
+}
+
+// --- Last updated ---
+function renderLastUpdated() {
+  const el = document.getElementById('lastUpdated');
+  el.textContent = `마지막 저장: ${new Date().toLocaleString('ko-KR')}`;
+}
+
+// --- Auto refresh every minute ---
+setInterval(() => { if (state.selected.length > 0) renderCards(); }, 60000);
+
+// --- Init ---
+initState();
+renderChips();
+renderCards();
+if (Object.keys(state.servers).length > 0 || state.selected.length > 0) renderLastUpdated();
+</script>
+</body>
+</html>
