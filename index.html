@@ -5,508 +5,583 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>생명의 기운 트래커</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --border: #2a2d3a;
-    --accent: #c8a96e;
-    --accent-dim: #8a7048;
-    --text: #d4d6e0;
-    --text-dim: #6b6f82;
-    --green: #4caf82;
-    --yellow: #e6b84a;
-    --red: #e05858;
-    --bar-bg: #252836;
-  }
+:root {
+  --bg:       #0d0f18;
+  --surface:  #161925;
+  --surface2: #1c2030;
+  --border:   #272b3d;
+  --border2:  #323650;
+  --accent:   #c8a96e;
+  --text:     #cdd1e0;
+  --text-dim: #5c6278;
+  --green:    #4caf82;
+  --yellow:   #e6b84a;
+  --red:      #e05858;
+  --bar-bg:   #1c2030;
+}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Malgun Gothic', '맑은 고딕', Pretendard, sans-serif;
-    font-size: 14px;
-    min-height: 100vh;
-    padding: 20px;
-  }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Malgun Gothic','맑은 고딕',Pretendard,sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+  padding: 20px 16px 40px;
+  max-width: 960px;
+  margin: 0 auto;
+}
 
-  h1 {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--accent);
-    letter-spacing: 0.04em;
-    margin-bottom: 4px;
-  }
+.page-title { font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing:.04em; margin-bottom: 3px; }
+.page-sub { font-size: 12px; color: var(--text-dim); margin-bottom: 16px; }
 
-  .subtitle {
-    color: var(--text-dim);
-    font-size: 12px;
-    margin-bottom: 20px;
-  }
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+.panel-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing:.08em; margin-bottom: 10px; }
 
-  /* Server selector */
-  .server-selector {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-    margin-bottom: 16px;
-  }
+/* reset bar */
+.reset-bar {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  font-size: 12px; color: var(--text-dim);
+  padding: 8px 14px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+  margin-bottom: 12px;
+}
+.reset-bar b { color: var(--text); }
 
-  .server-selector h2 {
-    font-size: 12px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 10px;
-  }
+/* account tabs */
+.account-tabs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.acc-tab { display: flex; align-items: stretch; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; transition: border-color .15s; }
+.acc-tab.active { border-color: var(--accent); }
+.acc-tab-name { padding: 5px 13px; font-size: 13px; font-weight: 600; color: var(--text-dim); cursor: pointer; user-select: none; }
+.acc-tab.active .acc-tab-name { color: var(--accent); }
+.acc-tab-del { padding: 5px 8px; color: var(--text-dim); font-size: 12px; border-left: 1px solid var(--border); cursor: pointer; user-select: none; display: flex; align-items: center; }
+.acc-tab-del:hover { color: var(--red); }
+.btn-add { padding: 5px 13px; background: transparent; border: 1px dashed var(--border); border-radius: 6px; color: var(--text-dim); font-size: 13px; font-family: inherit; cursor: pointer; font-weight: 600; transition: border-color .15s, color .15s; }
+.btn-add:hover { border-color: var(--accent); color: var(--accent); opacity: 1; }
 
-  .server-checkboxes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
+/* server chips */
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip { display: flex; align-items: center; gap: 5px; padding: 5px 13px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; cursor: pointer; transition: border-color .15s, background .15s; user-select: none; font-size: 13px; }
+.chip input { display: none; }
+.chip.active { border-color: var(--accent); background: #1a1810; color: var(--accent); }
 
-  .server-chip {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-    user-select: none;
-  }
+/* server card */
+.server-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
 
-  .server-chip input { display: none; }
+.sc-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 0; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+.sc-name { font-weight: 700; font-size: 15px; color: var(--accent); }
+.sc-vita-block { display: flex; align-items: baseline; gap: 4px; }
+.sc-vita { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sc-vita-max { font-size: 13px; color: var(--text-dim); }
 
-  .server-chip.active {
-    border-color: var(--accent);
-    background: #1e1c14;
-    color: var(--accent);
-  }
+.sc-bar-wrap { height: 6px; background: var(--bar-bg); margin: 0 16px 10px; border-radius: 3px; overflow: hidden; }
+.sc-bar-fill { height: 100%; border-radius: 3px; transition: width .4s ease; }
 
-  /* Cards */
-  .cards {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
+.sc-meta { display: flex; align-items: center; justify-content: space-between; padding: 0 16px 10px; flex-wrap: wrap; gap: 8px; }
+.sc-charge { font-size: 12px; color: var(--text-dim); }
+.sc-charge b { color: var(--green); font-weight: 600; }
+.sc-charge.full b { color: var(--accent); }
 
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-  }
+.sc-actions { display: flex; gap: 6px; align-items: center; }
+.btn-sm { border: none; border-radius: 5px; padding: 4px 11px; font-size: 12px; font-family: inherit; cursor: pointer; font-weight: 600; transition: opacity .15s; }
+.btn-sm:hover { opacity: .8; }
+.btn-drain { background: var(--red); color: #fff; }
+.btn-partial { background: var(--yellow); color: #111; }
+.btn-setmax { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border2); }
 
-  .card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
+.sc-memo-row { display: flex; align-items: center; gap: 8px; padding: 0 16px 10px; }
+.sc-memo-label { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+.memo-input { flex: 1; background: var(--bar-bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-size: 12px; font-family: inherit; padding: 4px 8px; outline: none; transition: border-color .15s; }
+.memo-input:focus { border-color: var(--accent); }
+.memo-input::placeholder { color: var(--text-dim); }
 
-  .server-name {
-    font-weight: 700;
-    font-size: 15px;
-    color: var(--accent);
-  }
+/* schedule */
+.sc-sched { border-top: 1px solid var(--border); padding: 10px 16px 14px; overflow-x: auto; }
+.sched-title { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing:.07em; margin-bottom: 8px; }
+.sched-table { width: 100%; border-collapse: collapse; min-width: 560px; }
+.sched-table th { font-size: 11px; color: var(--text-dim); font-weight: 600; text-align: left; padding: 0 6px 6px; white-space: nowrap; }
+.sched-table td { padding: 3px 6px; vertical-align: middle; }
 
-  .vita-value {
-    font-size: 22px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    color: var(--text);
-  }
+.char-name-input { background: var(--bar-bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-size: 12px; font-family: inherit; padding: 4px 8px; outline: none; width: 110px; transition: border-color .15s; }
+.char-name-input:focus { border-color: var(--accent); }
+.char-name-input::placeholder { color: var(--text-dim); }
 
-  .vita-max {
-    font-size: 13px;
-    color: var(--text-dim);
-    margin-left: 2px;
-  }
+.chaos-group { display: flex; gap: 4px; align-items: center; }
 
-  .bar-wrap {
-    background: var(--bar-bg);
-    border-radius: 4px;
-    height: 8px;
-    overflow: hidden;
-    margin-bottom: 10px;
-  }
+.check-box { width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border2); background: var(--bar-bg); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; transition: background .15s, border-color .15s; user-select: none; flex-shrink: 0; }
+.check-box.done-green { background: var(--green); border-color: var(--green); color: #fff; }
+.check-box.done-gold  { background: var(--accent); border-color: var(--accent); color: #111; }
 
-  .bar-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.4s ease;
-  }
+.gold-slots { display: flex; gap: 6px; flex-wrap: wrap; }
+.gold-slot { display: flex; align-items: center; gap: 3px; }
+.gold-name-input { background: var(--bar-bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 11px; font-family: inherit; padding: 3px 6px; outline: none; width: 80px; transition: border-color .15s; }
+.gold-name-input:focus { border-color: var(--accent); }
+.gold-name-input::placeholder { color: var(--text-dim); }
 
-  .card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
+/* modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 200; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 24px; width: 320px; }
+.modal h3 { font-size: 15px; margin-bottom: 4px; color: var(--accent); }
+.modal p { font-size: 12px; color: var(--text-dim); margin-bottom: 14px; }
+.modal input { width: 100%; background: var(--bg); border: 1px solid var(--border2); border-radius: 6px; color: var(--text); font-size: 18px; font-family: inherit; padding: 8px 12px; margin-bottom: 14px; outline: none; text-align: center; }
+.modal input[type="text"] { font-size: 14px; }
+.modal input:focus { border-color: var(--accent); }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.btn-modal { border: none; border-radius: 5px; padding: 6px 16px; font-size: 13px; font-family: inherit; cursor: pointer; font-weight: 600; }
+.btn-modal:hover { opacity: .8; }
+.btn-modal.cancel { background: var(--border); color: var(--text); }
+.btn-modal.confirm { background: var(--accent); color: #111; }
 
-  .charge-info {
-    font-size: 12px;
-    color: var(--text-dim);
-  }
-
-  .charge-info span {
-    color: var(--green);
-    font-weight: 600;
-  }
-
-  .charge-info.full span { color: var(--accent); }
-
-  .actions {
-    display: flex;
-    gap: 6px;
-  }
-
-  button {
-    border: none;
-    border-radius: 5px;
-    padding: 5px 12px;
-    font-size: 12px;
-    font-family: inherit;
-    cursor: pointer;
-    font-weight: 600;
-    transition: opacity 0.15s;
-  }
-
-  button:hover { opacity: 0.8; }
-
-  .btn-drain {
-    background: var(--red);
-    color: #fff;
-  }
-
-  .btn-partial {
-    background: var(--yellow);
-    color: #111;
-  }
-
-  /* Modal */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.65);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 22px 24px;
-    width: 300px;
-  }
-
-  .modal h3 {
-    font-size: 15px;
-    margin-bottom: 4px;
-    color: var(--accent);
-  }
-
-  .modal p {
-    font-size: 12px;
-    color: var(--text-dim);
-    margin-bottom: 14px;
-  }
-
-  .modal input[type="number"] {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-size: 18px;
-    font-family: inherit;
-    padding: 8px 12px;
-    margin-bottom: 14px;
-    outline: none;
-    text-align: center;
-  }
-
-  .modal input:focus { border-color: var(--accent); }
-
-  .modal-actions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-  }
-
-  .btn-cancel {
-    background: var(--border);
-    color: var(--text);
-  }
-
-  .btn-confirm {
-    background: var(--accent);
-    color: #111;
-  }
-
-  .empty-state {
-    color: var(--text-dim);
-    font-size: 13px;
-    padding: 20px;
-    text-align: center;
-    border: 1px dashed var(--border);
-    border-radius: 8px;
-  }
-
-  .last-updated {
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-top: 16px;
-    text-align: right;
-  }
+.char-del-btn { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border-radius:4px; font-size:11px; color:var(--text-dim); cursor:pointer; user-select:none; transition:background .15s,color .15s; }
+.char-del-btn:hover { background:var(--red); color:#fff; }
+.sched-add-row { padding: 6px 0 2px; }
+.btn-add-char { background:transparent; border:1px dashed var(--border); border-radius:5px; color:var(--text-dim); font-size:12px; font-family:inherit; padding:4px 12px; cursor:pointer; font-weight:600; transition:border-color .15s,color .15s; }
+.btn-add-char:hover { border-color:var(--accent); color:var(--accent); opacity:1; }
+.empty-state { color: var(--text-dim); font-size: 13px; padding: 24px; text-align: center; border: 1px dashed var(--border); border-radius: 8px; margin-bottom: 12px; }
+.last-saved { font-size: 11px; color: var(--text-dim); margin-top: 16px; text-align: right; }
 </style>
 </head>
 <body>
 
-<h1>⚡ 생명의 기운 트래커</h1>
-<p class="subtitle">최대 10,500 · 시간당 180 회복 · 데이터는 브라우저 쿠키에 저장됩니다</p>
+<div class="page-title">⚡ 생명의 기운 트래커</div>
+<div class="page-sub">10분당 30 회복 (시간당 180) · 데이터는 쿠키에 저장 · 일간 리셋 매일 자정 / 주간 리셋 수요일</div>
 
-<div class="server-selector">
-  <h2>서버 선택</h2>
-  <div class="server-checkboxes" id="serverChips"></div>
+<div class="reset-bar" id="resetBar"></div>
+
+<div class="panel">
+  <div class="panel-label">계정</div>
+  <div class="account-tabs" id="accountTabs"></div>
 </div>
 
-<div class="cards" id="cards"></div>
-<div class="empty-state" id="emptyState" style="display:none">선택된 서버가 없습니다. 위에서 서버를 선택하세요.</div>
+<div class="panel" id="serverSelectorPanel" style="display:none">
+  <div class="panel-label">서버 선택</div>
+  <div class="chips" id="serverChips"></div>
+</div>
 
-<div class="last-updated" id="lastUpdated"></div>
+<div id="cardsArea"></div>
+<div class="last-saved" id="lastSaved"></div>
 
-<!-- Modal -->
-<div class="modal-overlay" id="modalOverlay">
+<!-- 생명의 기운 수치 모달 -->
+<div class="modal-overlay" id="vitaModal">
   <div class="modal">
-    <h3 id="modalTitle">일부 소모</h3>
-    <p id="modalDesc">소모 후 남은 생명의 기운 수치를 입력하세요 (0 ~ 10500)</p>
-    <input type="number" id="modalInput" min="0" max="10500" placeholder="0">
+    <h3 id="vitaModalTitle">일부 소모</h3>
+    <p id="vitaModalDesc"></p>
+    <input type="number" id="vitaModalInput" min="0">
     <div class="modal-actions">
-      <button class="btn-cancel" id="modalCancel">취소</button>
-      <button class="btn-confirm" id="modalConfirm">적용</button>
+      <button class="btn-modal cancel" id="vitaModalCancel">취소</button>
+      <button class="btn-modal confirm" id="vitaModalConfirm">적용</button>
+    </div>
+  </div>
+</div>
+
+<!-- 최대치 설정 모달 -->
+<div class="modal-overlay" id="maxModal">
+  <div class="modal">
+    <h3 id="maxModalTitle">최대치 설정</h3>
+    <p>이 서버의 최대 생명의 기운을 입력하세요 (1 ~ 10500)</p>
+    <input type="number" id="maxModalInput" min="1" max="10500">
+    <div class="modal-actions">
+      <button class="btn-modal cancel" id="maxModalCancel">취소</button>
+      <button class="btn-modal confirm" id="maxModalConfirm">적용</button>
+    </div>
+  </div>
+</div>
+
+<!-- 계정 추가 모달 -->
+<div class="modal-overlay" id="accModal">
+  <div class="modal">
+    <h3>계정 추가</h3>
+    <p>계정 이름을 입력하세요</p>
+    <input type="text" id="accModalInput" maxlength="20" placeholder="예) 본캐, 부캐1">
+    <div class="modal-actions">
+      <button class="btn-modal cancel" id="accModalCancel">취소</button>
+      <button class="btn-modal confirm" id="accModalConfirm">확인</button>
     </div>
   </div>
 </div>
 
 <script>
-const SERVERS = ['카마인','니나브','카단','카제로스','아만','실리안','아브렐슈드','루페온'];
-const MAX_VITA = 10500;
-const REGEN_PER_HOUR = 180;
-const COOKIE_KEY = 'vita_tracker_v1';
+const SERVERS        = ['카마인','니나브','카단','카제로스','아만','실리안','아브렐슈드','루페온'];
+const DEFAULT_MAX    = 10500;
+const REGEN_PER_10MIN = 30;           // 10분당 30 회복
+const REGEN_PER_HOUR  = REGEN_PER_10MIN * 6; // = 180
+const COOKIE_KEY      = 'vita_tracker_v3';
+const CHAR_MAX        = 24;
+const GOLD_SLOTS      = 3;
 
-// --- Cookie helpers ---
-function saveCookie(data) {
-  const val = encodeURIComponent(JSON.stringify(data));
-  const exp = new Date(Date.now() + 365*24*3600*1000).toUTCString();
-  document.cookie = `${COOKIE_KEY}=${val};expires=${exp};path=/`;
+/* ── 쿠키 ── */
+function cookieSave(data) {
+  try {
+    const v = encodeURIComponent(JSON.stringify(data));
+    const e = new Date(Date.now() + 365*86400000).toUTCString();
+    document.cookie = COOKIE_KEY+'='+v+';expires='+e+';path=/';
+  } catch(e){}
+}
+function cookieLoad() {
+  const m = document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(COOKIE_KEY+'='));
+  if (!m) return null;
+  try { return JSON.parse(decodeURIComponent(m.slice(COOKIE_KEY.length+1))); } catch(e){ return null; }
 }
 
-function loadCookie() {
-  const match = document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(COOKIE_KEY+'='));
-  if (!match) return null;
-  try { return JSON.parse(decodeURIComponent(match.slice(COOKIE_KEY.length+1))); }
-  catch(e) { return null; }
-}
+/* ── 상태 ── */
+let state = { accounts:[], activeAccountId:null, lastDailyReset:null, lastWeeklyReset:null };
 
-// --- State ---
-let state = {
-  selected: [],   // array of server names currently shown
-  servers: {}     // { serverName: { vita: number, timestamp: number (ms) } }
-};
-
-function initState() {
-  const saved = loadCookie();
-  if (saved) {
-    state = saved;
-  } else {
-    state = { selected: [], servers: {} };
-  }
-}
+function activeAccount() { return state.accounts.find(a=>a.id===state.activeAccountId)||null; }
 
 function save() {
-  saveCookie(state);
-  renderLastUpdated();
+  cookieSave(state);
+  document.getElementById('lastSaved').textContent = '마지막 저장: '+new Date().toLocaleString('ko-KR');
 }
 
-// --- Vita computation ---
-function currentVita(serverName) {
-  const s = state.servers[serverName];
-  if (!s) return MAX_VITA;
-  const elapsed = (Date.now() - s.timestamp) / 3600000; // hours
-  const recovered = Math.floor(elapsed * REGEN_PER_HOUR);
-  return Math.min(MAX_VITA, s.vita + recovered);
+/* ── 기본값 생성 ── */
+function makeChar() {
+  return { name:'', chaos:false, guardian:false, gold:Array.from({length:GOLD_SLOTS},()=>({label:'',done:false})) };
+}
+function makeServer(maxVita) {
+  maxVita = maxVita||DEFAULT_MAX;
+  return { vita:maxVita, timestamp:Date.now(), memo:'', maxVita, chars:[makeChar()] };
+}
+function ensureSrv(srv) {
+  if (!srv.maxVita) srv.maxVita = DEFAULT_MAX;
+  if (!srv.chars||!srv.chars.length) srv.chars=[makeChar()];
+  srv.chars.forEach(c=>{
+    if (typeof c.chaos!=='boolean') c.chaos=false;
+    if (typeof c.guardian!=='boolean') c.guardian=false;
+    if (!c.gold||c.gold.length<GOLD_SLOTS)
+      c.gold = Array.from({length:GOLD_SLOTS},(_,i)=>c.gold?.[i]||{label:'',done:false});
+  });
 }
 
-function hoursToFull(serverName) {
-  const cv = currentVita(serverName);
-  if (cv >= MAX_VITA) return 0;
-  return (MAX_VITA - cv) / REGEN_PER_HOUR;
+/* ── 리셋 ── */
+function todayStr() {
+  const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function lastWedStr() {
+  const now=new Date(), adj=new Date(now-6*3600000);
+  const day=adj.getDay(), diff=(day>=3)?(day-3):(day+4);
+  adj.setDate(adj.getDate()-diff);
+  return adj.getFullYear()+'-'+String(adj.getMonth()+1).padStart(2,'0')+'-'+String(adj.getDate()).padStart(2,'0');
+}
+function checkResets() {
+  const today=todayStr(), wed=lastWedStr();
+  if (state.lastDailyReset!==today) {
+    state.accounts.forEach(a=>Object.values(a.servers).forEach(s=>{ ensureSrv(s); s.chars.forEach(c=>{ c.chaos=false; c.guardian=false; }); }));
+    state.lastDailyReset=today;
+  }
+  if (state.lastWeeklyReset!==wed) {
+    state.accounts.forEach(a=>Object.values(a.servers).forEach(s=>{ ensureSrv(s); s.chars.forEach(c=>c.gold.forEach(g=>g.done=false)); }));
+    state.lastWeeklyReset=wed;
+  }
 }
 
-function formatDuration(hours) {
-  if (hours <= 0) return '완충';
-  const totalMin = Math.ceil(hours * 60);
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  const d = Math.floor(h / 24);
-  const rh = h % 24;
-  if (d > 0) return `${d}일 ${rh}시간 ${m}분`;
-  if (h > 0) return `${h}시간 ${m}분`;
-  return `${m}분`;
+function initState() {
+  const s=cookieLoad();
+  if (s&&s.accounts) state=s;
+  checkResets();
 }
 
-function barColor(ratio) {
-  if (ratio >= 0.9) return 'var(--accent)';
-  if (ratio >= 0.5) return 'var(--green)';
-  if (ratio >= 0.25) return 'var(--yellow)';
-  return 'var(--red)';
+/* ── 생기 계산 ── */
+function curVita(srv) {
+  const elapsed10=(Date.now()-srv.timestamp)/600000; // 경과 10분 단위
+  return Math.min(srv.maxVita, srv.vita+Math.floor(elapsed10)*REGEN_PER_10MIN);
+}
+function hToFull(srv) { const cv=curVita(srv); if(cv>=srv.maxVita) return 0; const need=srv.maxVita-cv; return (Math.ceil(need/REGEN_PER_10MIN)*10)/60; }
+function fmtDur(h) {
+  if (h<=0) return '완충';
+  const m=Math.ceil(h*60), hh=Math.floor(m/60), mm=m%60, d=Math.floor(hh/24), rh=hh%24;
+  if (d>0) return d+'일 '+rh+'시간 '+mm+'분';
+  if (hh>0) return hh+'시간 '+mm+'분';
+  return mm+'분';
+}
+function barClr(r) { return r>=.9?'var(--accent)':r>=.5?'var(--green)':r>=.25?'var(--yellow)':'var(--red)'; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ── 리셋 타이머 ── */
+function renderResetBar() {
+  const now=new Date();
+  const nd=new Date(now); nd.setDate(nd.getDate()+1); nd.setHours(0,0,0,0);
+  const dm=nd-now, dh=Math.floor(dm/3600000), dmm=Math.floor((dm%3600000)/60000);
+  const nw=new Date(now), dtw=(3-now.getDay()+7)%7||7;
+  nw.setDate(now.getDate()+dtw); nw.setHours(6,0,0,0);
+  if (nw<=now) nw.setDate(nw.getDate()+7);
+  const wm=nw-now, wd=Math.floor(wm/86400000), wh=Math.floor((wm%86400000)/3600000), wmm=Math.floor((wm%3600000)/60000);
+  document.getElementById('resetBar').innerHTML=
+    '<span>🌅 일간 리셋까지: <b>'+dh+'시간 '+dmm+'분</b></span>'+
+    '<span>📅 주간 리셋(수)까지: <b>'+wd+'일 '+wh+'시간 '+wmm+'분</b></span>';
 }
 
-// --- Render ---
-function renderChips() {
-  const container = document.getElementById('serverChips');
-  container.innerHTML = '';
-  SERVERS.forEach(name => {
-    const chip = document.createElement('label');
-    chip.className = 'server-chip' + (state.selected.includes(name) ? ' active' : '');
-    chip.innerHTML = `<input type="checkbox" ${state.selected.includes(name)?'checked':''}>${name}`;
-    chip.querySelector('input').addEventListener('change', e => {
-      if (e.target.checked) {
-        if (!state.selected.includes(name)) state.selected.push(name);
-      } else {
-        state.selected = state.selected.filter(s => s !== name);
-      }
-      save();
-      renderChips();
-      renderCards();
+/* ── 계정 탭 ── */
+function renderAccountTabs() {
+  const el=document.getElementById('accountTabs'); el.innerHTML='';
+  state.accounts.forEach(acc=>{
+    const tab=document.createElement('div');
+    tab.className='acc-tab'+(acc.id===state.activeAccountId?' active':'');
+    const nm=document.createElement('span'); nm.className='acc-tab-name'; nm.textContent=acc.name;
+    nm.addEventListener('click',()=>{ state.activeAccountId=acc.id; save(); renderAll(); });
+    const del=document.createElement('span'); del.className='acc-tab-del'; del.textContent='✕';
+    del.addEventListener('click',e=>{ e.stopPropagation();
+      if(!confirm('"'+acc.name+'" 계정을 삭제할까요?')) return;
+      state.accounts=state.accounts.filter(a=>a.id!==acc.id);
+      if (state.activeAccountId===acc.id) state.activeAccountId=state.accounts[0]?.id||null;
+      save(); renderAll();
     });
-    container.appendChild(chip);
+    tab.appendChild(nm); tab.appendChild(del); el.appendChild(tab);
+  });
+  const add=document.createElement('button'); add.className='btn-add'; add.textContent='+ 계정 추가';
+  add.addEventListener('click',openAccModal); el.appendChild(add);
+}
+
+/* ── 서버 칩 ── */
+function renderChips() {
+  const acc=activeAccount(), panel=document.getElementById('serverSelectorPanel');
+  if (!acc){ panel.style.display='none'; return; } panel.style.display='';
+  const el=document.getElementById('serverChips'); el.innerHTML='';
+  SERVERS.forEach(name=>{
+    const chip=document.createElement('label');
+    chip.className='chip'+(acc.selected.includes(name)?' active':'');
+    chip.innerHTML='<input type="checkbox"'+(acc.selected.includes(name)?' checked':'')+'>'+name;
+    chip.querySelector('input').addEventListener('change',e=>{
+      if(e.target.checked){ if(!acc.selected.includes(name)) acc.selected.push(name); }
+      else acc.selected=acc.selected.filter(s=>s!==name);
+      save(); renderChips(); renderCards();
+    });
+    el.appendChild(chip);
   });
 }
 
+/* ── 카드 ── */
 function renderCards() {
-  const container = document.getElementById('cards');
-  const empty = document.getElementById('emptyState');
-  container.innerHTML = '';
-
-  if (state.selected.length === 0) {
-    empty.style.display = '';
-    return;
-  }
-  empty.style.display = 'none';
-
-  state.selected.forEach(name => {
-    const cv = currentVita(name);
-    const ratio = cv / MAX_VITA;
-    const h = hoursToFull(name);
-    const isFull = h <= 0;
-
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div class="card-header">
-        <span class="server-name">${name}</span>
-        <span><span class="vita-value">${cv.toLocaleString()}</span><span class="vita-max"> / ${MAX_VITA.toLocaleString()}</span></span>
-      </div>
-      <div class="bar-wrap">
-        <div class="bar-fill" style="width:${(ratio*100).toFixed(1)}%;background:${barColor(ratio)}"></div>
-      </div>
-      <div class="card-footer">
-        <div class="charge-info ${isFull?'full':''}">
-          완전충전까지: <span>${formatDuration(h)}</span>
-        </div>
-        <div class="actions">
-          <button class="btn-partial" data-server="${name}">일부 소모</button>
-          <button class="btn-drain" data-server="${name}">전소</button>
-        </div>
-      </div>
-    `;
-
-    card.querySelector('.btn-drain').addEventListener('click', () => drainServer(name));
-    card.querySelector('.btn-partial').addEventListener('click', () => openModal(name));
-
-    container.appendChild(card);
+  const area=document.getElementById('cardsArea'); area.innerHTML='';
+  const acc=activeAccount();
+  if (!acc){ area.innerHTML='<div class="empty-state">계정을 추가하고 서버를 선택하세요.</div>'; return; }
+  if (!acc.selected.length){ area.innerHTML='<div class="empty-state">위에서 서버를 선택하세요.</div>'; return; }
+  acc.selected.forEach(sn=>{
+    if (!acc.servers[sn]) acc.servers[sn]=makeServer();
+    const srv=acc.servers[sn]; ensureSrv(srv);
+    area.appendChild(buildCard(acc,sn,srv));
   });
 }
 
-function drainServer(name) {
-  state.servers[name] = { vita: 0, timestamp: Date.now() };
-  save();
-  renderCards();
-}
+function buildCard(acc,sn,srv) {
+  const cv=curVita(srv), ratio=cv/srv.maxVita, h=hToFull(srv), full=h<=0;
+  const card=document.createElement('div'); card.className='server-card';
 
-// --- Modal ---
-let _modalTarget = null;
+  /* 생기 헤더 */
+  const top=document.createElement('div');
+  top.innerHTML=`
+    <div class="sc-head">
+      <span class="sc-name">${esc(sn)}</span>
+      <div class="sc-vita-block">
+        <span class="sc-vita">${cv.toLocaleString()}</span>
+        <span class="sc-vita-max">/ ${srv.maxVita.toLocaleString()}</span>
+      </div>
+    </div>
+    <div class="sc-bar-wrap"><div class="sc-bar-fill" style="width:${(ratio*100).toFixed(1)}%;background:${barClr(ratio)}"></div></div>
+    <div class="sc-meta">
+      <div class="sc-charge${full?' full':''}">완전충전까지: <b>${fmtDur(h)}</b></div>
+      <div class="sc-actions">
+        <button class="btn-sm btn-setmax">최대치 설정</button>
+        <button class="btn-sm btn-partial">일부 소모</button>
+        <button class="btn-sm btn-drain">전소</button>
+      </div>
+    </div>
+    <div class="sc-memo-row">
+      <span class="sc-memo-label">메모</span>
+      <input class="memo-input" type="text" maxlength="100" placeholder="서버 메모 (캐릭터명 등)..." value="${esc(srv.memo)}">
+    </div>
+  `;
+  top.querySelector('.btn-drain').addEventListener('click',()=>{ srv.vita=0; srv.timestamp=Date.now(); save(); renderCards(); });
+  top.querySelector('.btn-partial').addEventListener('click',()=>openVitaModal(sn,srv));
+  top.querySelector('.btn-setmax').addEventListener('click',()=>openMaxModal(sn,srv));
+  top.querySelector('.memo-input').addEventListener('change',e=>{ srv.memo=e.target.value; save(); });
+  card.appendChild(top);
 
-function openModal(name) {
-  _modalTarget = name;
-  const cv = currentVita(name);
-  document.getElementById('modalTitle').textContent = `${name} — 일부 소모`;
-  document.getElementById('modalDesc').textContent = `소모 후 남은 생명의 기운을 입력 (현재: ${cv.toLocaleString()})`;
-  const inp = document.getElementById('modalInput');
-  inp.value = cv;
-  inp.max = MAX_VITA;
-  document.getElementById('modalOverlay').classList.add('open');
-  inp.focus();
-  inp.select();
-}
+  /* 스케줄 */
+  const sched=document.createElement('div'); sched.className='sc-sched';
+  const title=document.createElement('div'); title.className='sched-title'; title.textContent='캐릭터 스케줄';
+  sched.appendChild(title);
 
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  _modalTarget = null;
-}
+  const tbl=document.createElement('table'); tbl.className='sched-table';
+  tbl.innerHTML=`<thead><tr>
+    <th style="width:120px">캐릭터명</th>
+    <th style="width:68px">카오스 (일간)</th>
+    <th style="width:80px">가디언토벌 (일간)</th>
+    <th>골드 획득 (주간 3회)</th>
+    <th style="width:28px"></th>
+  </tr></thead>`;
+  const tbody=document.createElement('tbody');
 
-document.getElementById('modalCancel').addEventListener('click', closeModal);
-document.getElementById('modalOverlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
-});
-document.getElementById('modalInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') confirmModal();
-  if (e.key === 'Escape') closeModal();
-});
+  function buildCharRow(ch, ci, srv, sched) {
+    const tr=document.createElement('tr');
 
-document.getElementById('modalConfirm').addEventListener('click', confirmModal);
+    /* 캐릭터명 */
+    const tdName=document.createElement('td');
+    const ni=document.createElement('input'); ni.className='char-name-input'; ni.type='text';
+    ni.maxLength=16; ni.placeholder='캐릭터 '+(ci+1); ni.value=ch.name||'';
+    ni.addEventListener('change',e=>{ ch.name=e.target.value; save(); });
+    tdName.appendChild(ni);
 
-function confirmModal() {
-  if (!_modalTarget) return;
-  const raw = parseInt(document.getElementById('modalInput').value, 10);
-  if (isNaN(raw) || raw < 0 || raw > MAX_VITA) {
-    document.getElementById('modalInput').style.borderColor = 'var(--red)';
-    setTimeout(() => document.getElementById('modalInput').style.borderColor = '', 800);
-    return;
+    /* 카오스던전 (일간 1회) */
+    const tdChaos=document.createElement('td');
+    const boxC=document.createElement('div');
+    boxC.className='check-box'+(ch.chaos?' done-green':'');
+    boxC.textContent=ch.chaos?'✓':''; boxC.title='카오스던전';
+    boxC.addEventListener('click',()=>{ ch.chaos=!ch.chaos; save(); boxC.className='check-box'+(ch.chaos?' done-green':''); boxC.textContent=ch.chaos?'✓':''; });
+    tdChaos.appendChild(boxC);
+
+    /* 가디언토벌 (일간 1회) */
+    const tdGuard=document.createElement('td');
+    const boxG=document.createElement('div');
+    boxG.className='check-box'+(ch.guardian?' done-green':'');
+    boxG.textContent=ch.guardian?'✓':''; boxG.title='가디언토벌';
+    boxG.addEventListener('click',()=>{ ch.guardian=!ch.guardian; save(); boxG.className='check-box'+(ch.guardian?' done-green':''); boxG.textContent=ch.guardian?'✓':''; });
+    tdGuard.appendChild(boxG);
+
+    /* 골드 슬롯 */
+    const tdGold=document.createElement('td');
+    const gs=document.createElement('div'); gs.className='gold-slots';
+    ch.gold.forEach((g,gi)=>{
+      const slot=document.createElement('div'); slot.className='gold-slot';
+      const inp=document.createElement('input'); inp.className='gold-name-input'; inp.type='text';
+      inp.maxLength=12; inp.placeholder='골드'+(gi+1); inp.value=g.label||'';
+      inp.addEventListener('change',e=>{ g.label=e.target.value; save(); });
+      const box=document.createElement('div');
+      box.className='check-box'+(g.done?' done-gold':'');
+      box.textContent=g.done?'✓':'';
+      box.addEventListener('click',()=>{ g.done=!g.done; save(); box.className='check-box'+(g.done?' done-gold':''); box.textContent=g.done?'✓':''; });
+      slot.appendChild(inp); slot.appendChild(box); gs.appendChild(slot);
+    });
+    tdGold.appendChild(gs);
+
+    /* 삭제 버튼 */
+    const tdDel=document.createElement('td');
+    const delBtn=document.createElement('div'); delBtn.className='char-del-btn'; delBtn.textContent='✕'; delBtn.title='캐릭터 삭제';
+    delBtn.addEventListener('click',()=>{
+      if(srv.chars.length<=1){ alert('최소 1개의 캐릭터가 필요합니다.'); return; }
+      srv.chars.splice(ci,1); save(); rebuildSchedTable(srv,sched);
+    });
+    tdDel.appendChild(delBtn);
+
+    tr.appendChild(tdName); tr.appendChild(tdChaos); tr.appendChild(tdGuard); tr.appendChild(tdGold); tr.appendChild(tdDel);
+    return tr;
   }
-  state.servers[_modalTarget] = { vita: raw, timestamp: Date.now() };
-  save();
-  closeModal();
-  renderCards();
+
+  function rebuildSchedTable(srv,sched) {
+    const old=sched.querySelector('.sched-table'); if(old) old.remove();
+    const addRow=sched.querySelector('.sched-add-row'); if(addRow) addRow.remove();
+
+    const tbl2=document.createElement('table'); tbl2.className='sched-table';
+    tbl2.innerHTML=`<thead><tr>
+      <th style="width:120px">캐릭터명</th>
+      <th style="width:68px">카오스 (일간)</th>
+      <th style="width:80px">가디언토벌 (일간)</th>
+      <th>골드 획득 (주간 3회)</th>
+      <th style="width:28px"></th>
+    </tr></thead>`;
+    const tb2=document.createElement('tbody');
+    srv.chars.forEach((ch,ci)=>tb2.appendChild(buildCharRow(ch,ci,srv,sched)));
+    tbl2.appendChild(tb2); sched.appendChild(tbl2);
+
+    if(srv.chars.length<CHAR_MAX) {
+      const addRow2=document.createElement('div'); addRow2.className='sched-add-row';
+      const addBtn2=document.createElement('button'); addBtn2.className='btn-add-char'; addBtn2.textContent='+ 캐릭터 추가 ('+srv.chars.length+'/'+CHAR_MAX+')';
+      addBtn2.addEventListener('click',()=>{ srv.chars.push(makeChar()); save(); rebuildSchedTable(srv,sched); });
+      addRow2.appendChild(addBtn2); sched.appendChild(addRow2);
+    }
+  }
+
+  srv.chars.forEach((ch,ci)=>tbody.appendChild(buildCharRow(ch,ci,srv,sched)));
+
+  tbl.appendChild(tbody); sched.appendChild(tbl);
+
+  if(srv.chars.length<CHAR_MAX) {
+    const addRow=document.createElement('div'); addRow.className='sched-add-row';
+    const addBtn=document.createElement('button'); addBtn.className='btn-add-char'; addBtn.textContent='+ 캐릭터 추가 ('+srv.chars.length+'/'+CHAR_MAX+')';
+    addBtn.addEventListener('click',()=>{ srv.chars.push(makeChar()); save(); rebuildSchedTable(srv,sched); });
+    addRow.appendChild(addBtn); sched.appendChild(addRow);
+  }
+
+  card.appendChild(sched);
+  return card;
 }
 
-// --- Last updated ---
-function renderLastUpdated() {
-  const el = document.getElementById('lastUpdated');
-  el.textContent = `마지막 저장: ${new Date().toLocaleString('ko-KR')}`;
+/* ── 모달: 생기 수치 ── */
+let _vitaSrv=null, _vitaSn='';
+function openVitaModal(sn,srv){
+  _vitaSn=sn; _vitaSrv=srv;
+  const cv=curVita(srv);
+  document.getElementById('vitaModalTitle').textContent=sn+' — 일부 소모';
+  document.getElementById('vitaModalDesc').textContent='소모 후 남은 수치 입력 (현재: '+cv.toLocaleString()+' / 최대: '+srv.maxVita.toLocaleString()+')';
+  const i=document.getElementById('vitaModalInput'); i.max=srv.maxVita; i.value=cv; i.style.borderColor='';
+  document.getElementById('vitaModal').classList.add('open'); i.focus(); i.select();
 }
+function closeVitaModal(){ document.getElementById('vitaModal').classList.remove('open'); _vitaSrv=null; }
+function confirmVitaModal(){
+  if(!_vitaSrv) return;
+  const v=parseInt(document.getElementById('vitaModalInput').value,10);
+  if(isNaN(v)||v<0||v>_vitaSrv.maxVita){ document.getElementById('vitaModalInput').style.borderColor='var(--red)'; setTimeout(()=>document.getElementById('vitaModalInput').style.borderColor='',800); return; }
+  _vitaSrv.vita=v; _vitaSrv.timestamp=Date.now(); save(); closeVitaModal(); renderCards();
+}
+document.getElementById('vitaModalCancel').addEventListener('click',closeVitaModal);
+document.getElementById('vitaModalConfirm').addEventListener('click',confirmVitaModal);
+document.getElementById('vitaModal').addEventListener('click',e=>{ if(e.target===document.getElementById('vitaModal')) closeVitaModal(); });
+document.getElementById('vitaModalInput').addEventListener('keydown',e=>{ if(e.key==='Enter') confirmVitaModal(); if(e.key==='Escape') closeVitaModal(); });
 
-// --- Auto refresh every minute ---
-setInterval(() => { if (state.selected.length > 0) renderCards(); }, 60000);
+/* ── 모달: 최대치 ── */
+let _maxSrv=null, _maxSn='';
+function openMaxModal(sn,srv){
+  _maxSn=sn; _maxSrv=srv;
+  document.getElementById('maxModalTitle').textContent=sn+' — 최대치 설정';
+  const i=document.getElementById('maxModalInput'); i.value=srv.maxVita; i.style.borderColor='';
+  document.getElementById('maxModal').classList.add('open'); i.focus(); i.select();
+}
+function closeMaxModal(){ document.getElementById('maxModal').classList.remove('open'); _maxSrv=null; }
+function confirmMaxModal(){
+  if(!_maxSrv) return;
+  const v=parseInt(document.getElementById('maxModalInput').value,10);
+  if(isNaN(v)||v<1||v>10500){ document.getElementById('maxModalInput').style.borderColor='var(--red)'; setTimeout(()=>document.getElementById('maxModalInput').style.borderColor='',800); return; }
+  const cv=curVita(_maxSrv); _maxSrv.maxVita=v; _maxSrv.vita=Math.min(cv,v); _maxSrv.timestamp=Date.now();
+  save(); closeMaxModal(); renderCards();
+}
+document.getElementById('maxModalCancel').addEventListener('click',closeMaxModal);
+document.getElementById('maxModalConfirm').addEventListener('click',confirmMaxModal);
+document.getElementById('maxModal').addEventListener('click',e=>{ if(e.target===document.getElementById('maxModal')) closeMaxModal(); });
+document.getElementById('maxModalInput').addEventListener('keydown',e=>{ if(e.key==='Enter') confirmMaxModal(); if(e.key==='Escape') closeMaxModal(); });
 
-// --- Init ---
-initState();
-renderChips();
-renderCards();
-if (Object.keys(state.servers).length > 0 || state.selected.length > 0) renderLastUpdated();
+/* ── 모달: 계정 ── */
+function openAccModal(){
+  const i=document.getElementById('accModalInput'); i.value=''; i.style.borderColor='';
+  document.getElementById('accModal').classList.add('open'); i.focus();
+}
+function closeAccModal(){ document.getElementById('accModal').classList.remove('open'); }
+function confirmAccModal(){
+  const name=document.getElementById('accModalInput').value.trim();
+  if(!name){ document.getElementById('accModalInput').style.borderColor='var(--red)'; setTimeout(()=>document.getElementById('accModalInput').style.borderColor='',800); return; }
+  const a={id:'acc_'+Date.now(),name,selected:[],servers:{}};
+  state.accounts.push(a); state.activeAccountId=a.id; save(); closeAccModal(); renderAll();
+}
+document.getElementById('accModalCancel').addEventListener('click',closeAccModal);
+document.getElementById('accModalConfirm').addEventListener('click',confirmAccModal);
+document.getElementById('accModal').addEventListener('click',e=>{ if(e.target===document.getElementById('accModal')) closeAccModal(); });
+document.getElementById('accModalInput').addEventListener('keydown',e=>{ if(e.key==='Enter') confirmAccModal(); if(e.key==='Escape') closeAccModal(); });
+
+/* ── 전체 렌더 ── */
+function renderAll(){ renderAccountTabs(); renderChips(); renderCards(); }
+
+/* ── 자동 갱신 ── */
+setInterval(()=>{ checkResets(); renderResetBar(); if(activeAccount()?.selected.length>0) renderCards(); }, 60000);
+
+/* ── 초기화 ── */
+initState(); renderResetBar(); renderAll();
+if(state.accounts.length>0) document.getElementById('lastSaved').textContent='마지막 저장: (이전 세션)';
 </script>
 </body>
 </html>
