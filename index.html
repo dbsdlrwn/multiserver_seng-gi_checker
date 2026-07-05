@@ -152,7 +152,7 @@ body {
 <body>
 
 <div class="page-title">⚡ 생명의 기운 트래커</div>
-<div class="page-sub">10분당 30 회복 (시간당 180) · 데이터는 쿠키에 저장 · 일간 리셋 매일 자정 / 주간 리셋 수요일</div>
+<div class="page-sub">10분당 30 회복 (시간당 180) · 데이터는 쿠키에 저장 · 일간 리셋 매일 06시 / 주간 리셋 수요일 6시</div>
 
 <div class="reset-bar" id="resetBar"></div>
 
@@ -261,24 +261,47 @@ function ensureSrv(srv) {
 }
 
 /* ── 리셋 ── */
+// 1. 공통: 오전 6시 리셋 기준이 적용된 날짜 객체를 구하는 함수 //
+function getAdjDate() {
+  return new Date(new Date() - 6 * 3600000);
+}
+
+// 2. Date 객체를 YYYY-MM-DD 포맷 문자열로 변환하는 유틸 함수 //
+function formatDate(d) {
+  return d.getFullYear() + '-' + 
+         String(d.getMonth() + 1).padStart(2, '0') + '-' + 
+         String(d.getDate()).padStart(2, '0');
+}
+
 function todayStr() {
-  const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  // 보정된 날짜를 받아와 바로 포맷팅합니다. //
+  return formatDate(getAdjDate());
 }
+
 function lastWedStr() {
-  const now=new Date(), adj=new Date(now-6*3600000);
-  const day=adj.getDay(), diff=(day>=3)?(day-3):(day+4);
-  adj.setDate(adj.getDate()-diff);
-  return adj.getFullYear()+'-'+String(adj.getMonth()+1).padStart(2,'0')+'-'+String(adj.getDate()).padStart(2,'0');
+  // 통합된 공통 함수를 사용하여 보정된 날짜를 가져옵니다. //
+  const adj = getAdjDate();
+  const day = adj.getDay(), diff = (day >= 3) ? (day - 3) : (day + 4);
+  
+  adj.setDate(adj.getDate() - diff);
+  return formatDate(adj);
 }
+
 function checkResets() {
-  const today=todayStr(), wed=lastWedStr();
-  if (state.lastDailyReset!==today) {
-    state.accounts.forEach(a=>Object.values(a.servers).forEach(s=>{ ensureSrv(s); s.chars.forEach(c=>{ c.chaos=false; c.guardian=false; }); }));
-    state.lastDailyReset=today;
+  const today = todayStr(), wed = lastWedStr();
+  if (state.lastDailyReset !== today) {
+    state.accounts.forEach(a => Object.values(a.servers).forEach(s => { 
+      ensureSrv(s); 
+      s.chars.forEach(c => { c.chaos = false; c.guardian = false; }); 
+    }));
+    state.lastDailyReset = today;
   }
-  if (state.lastWeeklyReset!==wed) {
-    state.accounts.forEach(a=>Object.values(a.servers).forEach(s=>{ ensureSrv(s); s.chars.forEach(c=>c.gold.forEach(g=>g.done=false)); }));
-    state.lastWeeklyReset=wed;
+  if (state.lastWeeklyReset !== wed) {
+    state.accounts.forEach(a => Object.values(a.servers).forEach(s => { 
+      ensureSrv(s); 
+      s.chars.forEach(c => c.gold.forEach(g => g.done = false)); 
+    }));
+    state.lastWeeklyReset = wed;
   }
 }
 
